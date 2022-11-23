@@ -1,0 +1,68 @@
+#include <DC_motor_controller.h>
+#include <TwoMotors.h>
+
+DC_motor_controller motorR;       // Right motor
+DC_motor_controller motorL;       // Left motor
+
+TwoMotors both(&motorR, &motorL); // Two motors using
+
+float PID_constants [][3] {
+  {1.0, 1.0, 0.1},  // 0
+  {1.2, 1.0, 0.1},  // 1
+  {1.0, 1.2, 0.1},  // 2
+  {1.2, 1.2, 0.1},  // 3
+  {1.0, 1.0, 0.2},  // 4
+  {1.2, 1.0, 0.2},  // 5
+  {1.0, 1.2, 0.2},  // 6
+  {1.2, 1.2, 0.2},  // 7
+};
+
+const int PID_index = 4;
+
+float definitive_PID_constants[3];
+/*
+  definitive_PID_constants[0] = ;
+  definitive_PID_constants[1] = ;
+  definitive_PID_constants[2] = ;
+*/
+// Para o filtro de distâncias do sensor.
+//byte previous_value[3];
+
+void interrupt1 () {
+  motorR.isr();
+}
+
+void interrupt2 () {
+  motorL.isr();
+}
+
+
+void setup() {
+  for (int i = 0; i < 3; i++) {
+    definitive_PID_constants[i] = PID_constants[PID_index][i];
+  }
+   motorR.hBridge(11, 10, 9);
+  motorR.setEncoderPin(3, 5);
+  motorR.setRR(21.3);
+  motorR.setPIDconstants(definitive_PID_constants[0], definitive_PID_constants[1], definitive_PID_constants[2]); //1.9, 0.9, 0.1 || 1.5, 0.9, 0.2
+  motorR.setPins();
+
+  motorL.hBridge(8, 7, 6);
+  motorL.setEncoderPin(2, 4);
+  motorL.setRR(21.3);
+  motorL.setPIDconstants(definitive_PID_constants[0], definitive_PID_constants[1], definitive_PID_constants[2]); //1.2
+  motorL.setPins();
+
+  attachInterrupt(digitalPinToInterrupt(3), interrupt1, FALLING);
+  attachInterrupt(digitalPinToInterrupt(2), interrupt2, FALLING);
+
+  
+
+}
+
+void loop() {
+
+
+both.together(95, 2.4, 98, 2.4); //primeiro é motor direito
+motorL.walk(90, 1);
+}
